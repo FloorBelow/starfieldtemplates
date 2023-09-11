@@ -1,0 +1,103 @@
+//github.com/fo76utils/fo76utils/blob/main/src/btdfile.cpp
+
+char magic[4];
+uint version;
+float minHeight;
+float maxHeight;
+uint sizeX;
+uint sizeY;
+int minX;
+int minY;
+int maxX;
+int maxY;
+//local int cellsX =  maxX - minX + 1;
+//local int cellsY = maxY - minY + 1;
+local int cellsX = sizeX / 128;
+local int cellsY = sizeY / 128;
+
+int ltexCount;
+int ltexFormIDs[ltexCount];
+
+struct {
+    float minHeight;
+    float maxHeight;
+} cellHeights[cellsX * cellsY];
+
+
+typedef uint64 QuadrantLtexIds <read=QuadrantLtexIdsRead>;
+string QuadrantLtexIdsRead(QuadrantLtexIds v) {
+        string s;   
+        SPrintf( s, "%02d %02d %02d %02d %02d %02d %02d %02d", 
+            v & 255, 
+            (v>>8) & 255, 
+            (v>>16) & 255, 
+            (v>>24) & 255, 
+            (v>>32) & 255, 
+            (v>>40) & 255, 
+            (v>>48) & 255, 
+            (v>>56) & 255
+        );
+        return s;
+}
+
+
+QuadrantLtexIds quadrantLtexIds[cellsX * 2 * cellsY * 2] <format=hex>;
+
+//int gcvrCount;
+//int gcvrFormIDs[gcvrCount];
+
+//struct  {
+//    byte gcvr[8];
+//} quadrantGcvrIds[cellsX * 2 * cellsY * 2];
+
+ushort lod4Heights[cellsX * 8 * cellsY * 8]; //mapped from global minheight to maxheight?
+
+typedef ushort VertLtex <read=VertLtexRead>;
+
+string VertLtexRead(VertLtex v) {
+        string s;   
+        SPrintf( s, "%d %d %d %d %d", v & 0b111 , (v>>3) & 0b111, (v>>6) & 0b111, (v>>9) & 0b111, (v>>12) & 0b111 );
+        return s;
+}
+
+VertLtex lod4ltex[cellsX * 8 * cellsY * 8] <format=binary>;  //3-3-3-3-3 opacity
+
+//ushort lod4vcol[cellsX * 8 * cellsY * 8] <format=binary>; //5-5-5-1?
+
+typedef struct {
+    uint offset <bgcolor=cDkBlue>;
+    uint size <bgcolor=cDkRed>;
+} Offset <read=OffsetRead>;
+
+string OffsetRead(Offset& offset) {
+    string s;   
+    SPrintf( s, "%d %d", offset.offset, offset.size );
+    return s;
+};
+
+local int lod3OffsetCount = ((cellsX + 7) / 8) * ((cellsY + 7) / 8);
+local int lod2OffsetCount = ((cellsX + 3) / 4) * ((cellsY + 3) / 4);
+local int lod1OffsetCount = ((cellsX + 1) / 2) * ((cellsY + 1) / 2);
+local int lod0OffsetCount = cellsX * cellsY;
+
+Offset lod3Offsets[lod3OffsetCount];
+Offset lod2Offsets[lod2OffsetCount];
+Offset lod1Offsets[lod1OffsetCount];
+Offset lod0Offsets[lod0OffsetCount];
+//Offset gcvrOffsets[lod0OffsetCount];
+//Offset testOffsets[265];
+
+local int zlibOffset = FTell();
+local int i = 0;
+
+
+struct ZlibBlock (int size) {
+    int start <bgcolor=cBlue>;
+    byte data[size - 4] <bgcolor=cAqua>;
+};
+
+for(i = 0; i < lod3OffsetCount; i++) {
+    FSeek(zlibOffset + lod3Offsets[i].offset);
+    //byte lod3Block <bgcolor=cAqua>;
+    ZlibBlock lod3Block(lod3Offsets[i].size);
+}

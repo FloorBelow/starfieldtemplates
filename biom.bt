@@ -1,0 +1,18 @@
+typedef int FormID <bgcolor=cDkRed,format=hex>;
+
+byte version;
+byte unk;
+
+int biomeCount;
+FormID biomes[biomeCount];
+
+int hemisphereCount;
+
+struct {
+    int width;
+    int height;
+    int widthTimesHeight;
+    FormID biomes[widthTimesHeight];
+    int widthTimesHeightAgain;
+    byte resources[widthTimesHeightAgain];
+} hemispheres[hemisphereCount];
